@@ -1,8 +1,4 @@
 ﻿TODO
-	run net seprate of the app
-		master and slave configuration, decided on initial connection
-		that means 3 ports, send, receive and initial
-
 	improvements to gui
 		sound on receive
 		being able to set your name
