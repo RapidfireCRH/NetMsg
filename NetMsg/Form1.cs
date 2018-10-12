@@ -49,7 +49,11 @@ namespace NetMsg
         private void button1_Click(object sender, EventArgs e)
         {
             if (!net.send(ip, textBox3.Text))
-                ;
+            {
+                log("Error : " + net.error, log_level.Error);
+                display("Error sending message.");
+                return;
+            }
             display("->" + ip.ToString() + ": " + textBox3.Text);
             textBox3.Text = "";
         }
@@ -87,6 +91,7 @@ namespace NetMsg
                 if (temp.ip == null && temp.message.Length > 0)
                 {
                     log("Error: " + net.error, log_level.Error);
+                    display("Error receiving message.");
                     continue;
                 }
                 else if (temp.ip == null)
