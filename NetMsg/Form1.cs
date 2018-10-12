@@ -6,18 +6,18 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Net;
-using System.Net.Sockets;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.IO;
 
 namespace NetMsg
 {
     public partial class Form1 : Form
     {
-        public IPEndPoint remoteIPEndPoint = new IPEndPoint(IPAddress.Parse("192.168.1.1"), 8123);
-        public static string[] disp = new string[12];
+        IPAddress ip;
+        _net net = new _net();
+        public static string[] disp = new string[10];
         static bool changed = false;
-        UdpClient client = new UdpClient(8123);
         public Form1()
         {
             InitializeComponent();
@@ -25,33 +25,32 @@ namespace NetMsg
 
         private void textBox1_TextChanged(object sender, EventArgs e)
         {
-            backgroundWorker1.CancelAsync();
-            client.Close();
             try
             {
-                remoteIPEndPoint = new IPEndPoint(IPAddress.Parse(textBox1.Text), 8123);
+                ip = IPAddress.Parse(textBox1.Text);
             }
             catch
             {
-                remoteIPEndPoint = new IPEndPoint(IPAddress.Parse("192.168.1.1"), 8123);
+                ip = IPAddress.Parse("192.168.1.1");
                 textBox1.Text = "192.168.1.1";
             }
-            client = new UdpClient(8123);
-            backgroundWorker1.RunWorkerAsync();
 
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            
             backgroundWorker1.WorkerSupportsCancellation = true;
             textBox1.Text = "192.168.1.1";
             timer1.Enabled = true;
+            backgroundWorker1.RunWorkerAsync();
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
-            client.Send(Encoding.ASCII.GetBytes(textBox3.Text), Encoding.ASCII.GetBytes(textBox3.Text).Length, remoteIPEndPoint);
-            display("Local: " + textBox3.Text);
+            if (!net.send(ip, textBox3.Text))
+                ;
+            display("->" + ip.ToString() + ": " + textBox3.Text);
             textBox3.Text = "";
         }
         static void display(string nextline)
@@ -82,14 +81,19 @@ namespace NetMsg
 
         private void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
         {
-            while (!backgroundWorker1.CancellationPending)
+            while (true)
             {
-                Byte[] receivedBytes = client.Receive(ref remoteIPEndPoint);
-                if (receivedBytes == null || receivedBytes.Length == 0)
-                    return;
-                display("Remote: " + Encoding.ASCII.GetString(receivedBytes));
+                _net._rec temp = net.receive();
+                if (temp.ip == null && temp.message.Length > 0)
+                {
+                    log("Error: " + net.error, log_level.Error);
+                    continue;
+                }
+                else if (temp.ip == null)
+                    continue;
+                else
+                    display("<-" + temp.ip + ": " + temp.message);
             }
-            backgroundWorker1.Dispose();
         }
 
         private void timer1_Tick(object sender, EventArgs e)
@@ -100,6 +104,20 @@ namespace NetMsg
             foreach (string x in disp)
                 textBox2.Text += x + Environment.NewLine;
             changed = false;
+        }
+
+        enum log_level { Error, Log}
+        void log(string message, log_level msglvl)
+        {
+            switch(msglvl)
+            {
+                case log_level.Error:
+                    File.AppendAllText("Error.log", DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToLongTimeString() + " " + message);
+                    break;
+                case log_level.Log:
+                    File.AppendAllText("Info.log", DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToLongTimeString() + " " + message);
+                    break;
+            }
         }
     }
 }

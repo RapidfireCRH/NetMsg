@@ -17,6 +17,12 @@ namespace NetMsg
         
         //error reading
         public Exception error;
+
+        public struct _rec
+        {
+            public IPAddress ip;
+            public string message;
+        }
         
         //init
         public bool init()
@@ -58,11 +64,27 @@ namespace NetMsg
             }
         }
         //receive
-        public string receive()
+        public _rec receive()
         {
+            _rec ret = new _rec();
+            ret.ip = null;
+            ret.message = "Error";
+
+            if (!init())
+                return ret;
+                
             IPEndPoint endpoint = new IPEndPoint(IPAddress.Any, port);
-            return Encoding.ASCII.GetString(client.Receive(ref endpoint));
+            byte[] temp = client.Receive(ref endpoint);
+            if (temp.Length == 0)
+            {
+                ret.ip = null;
+                ret.message = "";
+                return ret;
+            }
+
+            ret.ip = endpoint.Address;
+            ret.message = Encoding.ASCII.GetString(temp);
+            return ret;
         }
-        //negotiate        
     }
 }
