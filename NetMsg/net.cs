@@ -22,6 +22,7 @@ namespace NetMsg
         {
             public IPAddress ip;
             public string message;
+            public DateTime dt;
         }
         
         //init
@@ -84,6 +85,7 @@ namespace NetMsg
 
             ret.ip = endpoint.Address;
             ret.message = Encoding.ASCII.GetString(temp);
+            ret.dt = DateTime.Now;
             return ret;
         }
     }

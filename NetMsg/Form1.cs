@@ -54,7 +54,7 @@ namespace NetMsg
                 display("Error sending message.");
                 return;
             }
-            display("->" + ip.ToString() + ": " + textBox3.Text);
+            display("->" + ip.ToString() + "-" + DateTime.Now.ToShortTimeString() + ": " + textBox3.Text);
             textBox3.Text = "";
         }
         static void display(string nextline)
@@ -97,7 +97,7 @@ namespace NetMsg
                 else if (temp.ip == null)
                     continue;
                 else
-                    display("<-" + temp.ip + ": " + temp.message);
+                    display("<-" + temp.ip + "-" + temp.dt.ToShortTimeString() + ": " + temp.message);
             }
         }
 
